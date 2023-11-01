@@ -20,20 +20,21 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         public inputForm(int numberOfVariables, int numberOfConstraints)
         {
             InitializeComponent();
-            
+
+            this.FormBorderStyle = FormBorderStyle.Fixed3D;
             this._numberOfVariables = numberOfVariables;
             this._numberOfConstraints = numberOfConstraints;
             this.Text = "Ввод данных";
             this.Icon = Properties.Resources.SolutionIcon;
-            
-            int formWidth = 350 + (numberOfVariables * 95); 
-            int formHeight = 250 + (numberOfConstraints * 45); 
+
+            int formWidth = 350 + (numberOfVariables * 95);
+            int formHeight = 260 + (numberOfConstraints * 45);
             this.Size = new Size(formWidth, formHeight);
 
             panel = new Panel();
             panel.Size = new Size(formWidth, formHeight);
             this.Controls.Add(panel);
-            
+
             ComboBox comboObjective = new ComboBox();
             comboObjective.Name = "comboObjective";
             comboObjective.SelectedIndexChanged += ComboObjective_SelectedIndexChanged;
@@ -44,8 +45,8 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             comboObjective.Location = new Point(10, 10);
             comboObjective.DropDownStyle = ComboBoxStyle.DropDownList;
             panel.Controls.Add(comboObjective);
-            comboObjective.TabIndex = 0;           
-            
+            comboObjective.TabIndex = 0;
+
             for (int i = 0; i < numberOfVariables; i++)
             {
                 Label labelVariable = new Label();
@@ -71,7 +72,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             panel.Controls.Add(labelConstraints);
 
             int tabIndex = numberOfVariables + 1;
-            
+
             for (int i = 0; i < numberOfConstraints; i++)
             {
                 for (int j = 0; j < numberOfVariables; j++)
@@ -107,13 +108,13 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 panel.Controls.Add(textBoxB);
                 textBoxB.TabIndex = tabIndex;
                 tabIndex++;
-            }            
+            }
             Button calculateButton = new Button();
             calculateButton.Name = "calculateButton";
             calculateButton.Text = "Рассчитать";
             calculateButton.Size = new Size(145, 37);
             int xPosition = (formWidth - calculateButton.Width) / 2;
-            int yPosition = 130 + numberOfConstraints * 40 + 40; 
+            int yPosition = 130 + numberOfConstraints * 40 + 40;
             calculateButton.Location = new Point(xPosition, yPosition);
             calculateButton.Font = new Font(calculateButton.Font.FontFamily, 11, FontStyle.Bold);
             panel.Controls.Add(calculateButton);
@@ -215,6 +216,9 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                         }
                     }
                 }
+
+                ResultForm resultForm = new ResultForm(linearProgram);
+                resultForm.Show();
             }
             catch (Exception ex)
             {
@@ -222,7 +226,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             }
         }
         private void ComboObjective_SelectedIndexChanged(object sender, EventArgs e)
-        {            
+        {
             ComboBox comboBox = (ComboBox)sender;
             selectedObjective = comboBox.SelectedItem.ToString();
         }

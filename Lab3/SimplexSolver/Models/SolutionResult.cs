@@ -8,5 +8,6 @@ namespace SimplexSolverProject.SimplexSolver.Models
 {
     internal class SolutionResult
     {
+
     }
 }
