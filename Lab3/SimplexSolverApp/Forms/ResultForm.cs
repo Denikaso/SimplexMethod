@@ -15,10 +15,13 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
 {
     public partial class ResultForm : Form
     {
+        private const string fileName = "C:\\Уник\\Методы\\SimplexMethod\\results\\table";
         private LinearProgram linearProgram;
         private SimplexAlgoritmh simplexAlgoritmh;
-        bool isCanonical;
-        int standartPanelWidth, standartPanelHeight, canonicalPanelWidht, canonicalPanelHeight;
+        public bool isCanonical;
+        private int standartPanelWidth, standartPanelHeight, canonicalPanelWidht, canonicalPanelHeight;
+        public int currentIteration;
+        FlowLayoutPanel tableLinksPanel;
         internal ResultForm(LinearProgram linearProgram)
         {
             InitializeComponent();
@@ -26,11 +29,13 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             linearProgram.ToStandardForm();
             simplexAlgoritmh = new SimplexAlgoritmh(linearProgram);
             isCanonical = simplexAlgoritmh.IsCanonical(linearProgram);
+            currentIteration = 0;
             
             this.FormBorderStyle = FormBorderStyle.Fixed3D;
             this.Icon = Properties.Resources.SolutionIcon;
 
             DisplayStandardForm();
+            tableLinksPanel = CreateTableLinkPanel();
             DisplayCanonicalForm();
 
             int width = standartPanelWidth + canonicalPanelWidht + 120;
@@ -131,7 +136,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             canonicalPanel.AutoSize = true;
             this.Controls.Add(canonicalPanel);
 
-            Font canonicalFont = new Font(FontFamily.GenericSansSerif, 10);
+            Font canonicalFont = new Font(FontFamily.GenericSansSerif, 11);
 
             Label canonicalFormLabel = new Label();
             canonicalFormLabel.Text = "Каноническая форма:";
@@ -152,8 +157,34 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             canonicalPanel.PerformLayout();
             canonicalPanelWidht = canonicalPanel.Width;
             canonicalPanelHeight = canonicalPanel.Height;
-        }
 
+            GenerateAndSaveSimplexTable(currentIteration, fileName);
+        }
+        public FlowLayoutPanel CreateTableLinkPanel()
+        {
+            tableLinksPanel = new FlowLayoutPanel();
+            tableLinksPanel.FlowDirection = FlowDirection.TopDown;
+            tableLinksPanel.Location = new Point(30, standartPanelHeight + 20);
+            tableLinksPanel.AutoSize = true;
+            this.Controls.Add(tableLinksPanel);
+            return tableLinksPanel;
+        }
+        public void GenerateAndSaveSimplexTable(int currentIteration, string fileName)
+        {
+            fileName = fileName + currentIteration + ".txt";
+            simplexAlgoritmh.WriteSimplexTableToFile(fileName);
+
+            LinkLabel linkLabel = new LinkLabel();
+            linkLabel.Text = "Открыть симплекс-таблицу для итерации " + currentIteration;
+            linkLabel.Location = new Point(10, 100 + currentIteration * 20);
+            linkLabel.AutoSize = true;
+            linkLabel.LinkClicked += (sender, e) =>
+            {
+                System.Diagnostics.Process.Start("notepad.exe", fileName);
+            };
+            tableLinksPanel.Controls.Add(linkLabel);
+            tableLinksPanel.PerformLayout();
+        }
 
         private void ResultForm_FormClosing(object sender, FormClosingEventArgs e)
         {
