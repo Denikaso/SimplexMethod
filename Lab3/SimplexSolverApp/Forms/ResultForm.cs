@@ -17,56 +17,49 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
     {
         private LinearProgram linearProgram;
         private SimplexAlgoritmh simplexAlgoritmh;
+        bool isCanonical;
+        int standartPanelWidth, standartPanelHeight, canonicalPanelWidht, canonicalPanelHeight;
         internal ResultForm(LinearProgram linearProgram)
         {
             InitializeComponent();
             this.linearProgram = linearProgram;
-            simplexAlgoritmh = new SimplexAlgoritmh(linearProgram);
             linearProgram.ToStandardForm();
-
-            // Вычислите размеры формы на основе количества ограничений и коэффициентов целевой функции
-            int width = 470 + (linearProgram.constraintsCoefficients.Count * 60); ; // Ширина формы
-            int height = 180 + (linearProgram.constraintsCoefficients.Count * 40); // Начальная высота + (количество ограничений * высота элемента)
-
-            this.Size = new Size(width, height);
+            simplexAlgoritmh = new SimplexAlgoritmh(linearProgram);
+            isCanonical = simplexAlgoritmh.IsCanonical(linearProgram);
+            
             this.FormBorderStyle = FormBorderStyle.Fixed3D;
             this.Icon = Properties.Resources.SolutionIcon;
 
             DisplayStandardForm();
+            DisplayCanonicalForm();
+
+            int width = standartPanelWidth + canonicalPanelWidht + 120;
+            int height = standartPanelHeight + canonicalPanelHeight + 50;
+            this.Size = new Size(width, height);
         }
 
         private void DisplayStandardForm()
-        {
-            // Создаем панель для отображения элементов
-            Panel panel = new Panel();
-            panel.Location = new Point(10, 10);
-            panel.Size = new Size(700, 700);
-            this.Controls.Add(panel);
+        {            
+            FlowLayoutPanel standardPanel = new FlowLayoutPanel();
+            standardPanel.FlowDirection = FlowDirection.TopDown; 
+            standardPanel.Location = new Point(30, 10);
+            standardPanel.AutoSize = true; 
+            this.Controls.Add(standardPanel);
 
-            // Устанавливаем общий размер шрифта
             Font font = new Font(FontFamily.GenericSansSerif, 11);
-            Size size;
-
-            // Заголовок "Стандартная форма:"
+            
             Label standardFormLabel = new Label();
             standardFormLabel.Text = "Стандартная форма:";
-            standardFormLabel.Location = new Point(6, 10);
-            standardFormLabel.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold); // Устанавливаем жирный шрифт
-            size = TextRenderer.MeasureText(standardFormLabel.Text, standardFormLabel.Font);
-            standardFormLabel.Size = size;
-            panel.Controls.Add(standardFormLabel);
-
-            // Заголовок для целевой функции
+            standardFormLabel.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);
+            standardFormLabel.AutoSize = true;
+            standardPanel.Controls.Add(standardFormLabel);
+            
             Label objectiveHeaderLabel = new Label();
             objectiveHeaderLabel.Text = "Целевая функция:";
-            objectiveHeaderLabel.Location = new Point(10, 10);
             objectiveHeaderLabel.Font = font;
-            objectiveHeaderLabel.Width = 200;
-            size = TextRenderer.MeasureText(objectiveHeaderLabel.Text, objectiveHeaderLabel.Font);
-            objectiveHeaderLabel.Size = size;
-            panel.Controls.Add(objectiveHeaderLabel);
+            objectiveHeaderLabel.AutoSize = true;
+            standardPanel.Controls.Add(objectiveHeaderLabel);
 
-            // Отобразите целевую функцию
             string objectiveFunction = "F = ";
             double coefficient = linearProgram.objectiveFunctionCoefficients[0];
             objectiveFunction += $"{coefficient}x{1}";
@@ -80,29 +73,22 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 else
                 {
                     objectiveFunction += $" {coefficient}x{i + 1} ";
-                }                
+                }
             }
             objectiveFunction += $" -> {linearProgram.Objective}";
 
             Label objectiveLabel = new Label();
             objectiveLabel.Text = objectiveFunction;
-            objectiveLabel.Location = new Point(10, 40);
             objectiveLabel.Font = font;
-            size = TextRenderer.MeasureText(objectiveLabel.Text, objectiveLabel.Font);
-            objectiveLabel.Size = size;
+            objectiveLabel.AutoSize = true;
+            standardPanel.Controls.Add(objectiveLabel);
 
-            panel.Controls.Add(objectiveLabel);
-
-            // Заголовок для ограничений
             Label constraintHeaderLabel = new Label();
             constraintHeaderLabel.Text = "Ограничения:";
-            constraintHeaderLabel.Location = new Point(10, 70);
             constraintHeaderLabel.Font = font;
-            size = TextRenderer.MeasureText(constraintHeaderLabel.Text, constraintHeaderLabel.Font);
-            constraintHeaderLabel.Size = size;
-            panel.Controls.Add(constraintHeaderLabel);
+            constraintHeaderLabel.AutoSize = true;
+            standardPanel.Controls.Add(constraintHeaderLabel);
 
-            // Отобразите ограничения
             for (int i = 0; i < linearProgram.constraintsCoefficients.Count; i++)
             {
                 string constraintText = $"Ограничение {i + 1}: ";
@@ -118,7 +104,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                         else
                         {
                             constraintText += " - ";
-                            coefficient = Math.Abs(coefficient); // Берем абсолютное значение
+                            coefficient = Math.Abs(coefficient);
                         }
                     }
                     constraintText += $"{coefficient}x{j + 1}";
@@ -127,13 +113,47 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
 
                 Label constraintLabel = new Label();
                 constraintLabel.Text = constraintText;
-                constraintLabel.Location = new Point(10, 100 + i * 30);
                 constraintLabel.Font = font;
-                size = TextRenderer.MeasureText(constraintLabel.Text, constraintLabel.Font);
-                constraintLabel.Size = size;
-                panel.Controls.Add(constraintLabel);
+                constraintLabel.AutoSize = true;
+                standardPanel.Controls.Add(constraintLabel);
             }
+
+            standardPanel.PerformLayout();
+            standartPanelWidth = standardPanel.Width;
+            standartPanelHeight = standardPanel.Height;
         }
+
+        private void DisplayCanonicalForm()
+        {
+            FlowLayoutPanel canonicalPanel = new FlowLayoutPanel();
+            canonicalPanel.Location = new Point(standartPanelWidth + 80, 10);
+            canonicalPanel.FlowDirection = FlowDirection.TopDown;
+            canonicalPanel.AutoSize = true;
+            this.Controls.Add(canonicalPanel);
+
+            Font canonicalFont = new Font(FontFamily.GenericSansSerif, 10);
+
+            Label canonicalFormLabel = new Label();
+            canonicalFormLabel.Text = "Каноническая форма:";
+            canonicalFormLabel.Location = new Point(6, 10);
+            canonicalFormLabel.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);            
+            canonicalFormLabel.AutoSize = true;
+            canonicalPanel.Controls.Add(canonicalFormLabel);
+
+            string canonicalInfo = isCanonical ? "Задача в канонической форме" : "Задача НЕ в канонической форме";
+
+            Label canonicalInfoLabel = new Label();
+            canonicalInfoLabel.Text = canonicalInfo;
+            canonicalInfoLabel.Location = new Point(10, 40);
+            canonicalInfoLabel.Font = canonicalFont;            
+            canonicalInfoLabel.AutoSize = true;            
+            canonicalPanel.Controls.Add(canonicalInfoLabel);
+
+            canonicalPanel.PerformLayout();
+            canonicalPanelWidht = canonicalPanel.Width;
+            canonicalPanelHeight = canonicalPanel.Height;
+        }
+
 
         private void ResultForm_FormClosing(object sender, FormClosingEventArgs e)
         {
