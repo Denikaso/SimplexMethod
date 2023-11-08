@@ -55,6 +55,7 @@ namespace SimplexSolverProject.SimplexSolver.Models
                             constraintsCoefficients[i].Add(0); // Дополнительные переменные с коэффициентами 0
                     }
                     constraintsCoefficients[i].Add(-1); // Дополнительная переменная с коэффициентом -1
+                    objectiveFunctionCoefficients.Add(0);
                     additionalVariableCount++;
                 }
                 else if (constraintsSigns[i] == "<=")
@@ -65,6 +66,7 @@ namespace SimplexSolverProject.SimplexSolver.Models
                         constraintsCoefficients[i].Add(0); // Дополнительные переменные с коэффициентами 0
                     }
                     constraintsCoefficients[i].Add(1); // Дополнительная переменная с коэффициентом 1
+                    objectiveFunctionCoefficients.Add(0);
                     additionalVariableCount++;
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using SimplexSolverProject.SimplexSolver.Models;
+using SimplexSolverProject.SimplexSolverApp.Forms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,120 @@ namespace SimplexSolverProject.SimplexSolver
 
     internal class SimplexAlgoritmh
     {
+        private const string fileName = "C:\\Уник\\Методы\\SimplexMethod\\results\\table";
         private LinearProgram linearProgram;
-        Dictionary<int, double> basisVariables;
+        private List<int> basisVariables;
+        public List<string> tableFiles;
+        private int iterationIndex;
         internal SimplexAlgoritmh(LinearProgram linearProgram)
         {
             this.linearProgram = linearProgram;
-            basisVariables = new Dictionary<int, double>();
+            basisVariables = new List<int>();
+            tableFiles = new List<string>();
+            iterationIndex = 0;
+        }
+        public void Solve()
+        {
+            // Основной цикл симплекс-алгоритма
+            while (!IsOptimal())
+            {
+                iterationIndex++;
+                // Выбор разрешающего столбца
+                int pivotColumn = SelectPivotColumn();
+
+                // Выбор разрешающей строки
+                int pivotRow = SelectPivotRow(pivotColumn);
+
+                // Переход к новому базису
+                Pivot(pivotRow, pivotColumn);
+                WriteSimplexTableToFile(fileName + iterationIndex);                
+            }
+
+            // Получение оптимального решения
+            GetSolution();
+        }
+
+        private bool IsOptimal()
+        {
+            return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
+
+        }
+
+        private int SelectPivotColumn()
+        {
+            // Выбор разрешающего столбца
+            // Обычно это столбец с наименьшим положительным значением в строке целевой функции
+            int pivotColumn = 0;
+            double minValue = double.MaxValue;
+            for (int i = 0; i < linearProgram.objectiveFunctionCoefficients.Count; i++)
+            {
+                if (linearProgram.objectiveFunctionCoefficients[i] < minValue)
+                {
+                    minValue = linearProgram.objectiveFunctionCoefficients[i];
+                    pivotColumn = i;
+                }
+            }
+            return pivotColumn;            
+        }
+
+        private int SelectPivotRow(int pivotColumn)
+        {
+            // Выбор разрешающей строки
+            // Обычно это строка, в которой столбец с наименьшим положительным отношением к правой части
+            int pivotRow = -1;
+            double minRatio = double.MaxValue;
+            for (int i = 0; i < linearProgram.constraintsB.Count; i++)
+            {
+                if (linearProgram.constraintsCoefficients[i][pivotColumn] > 0)
+                {
+                    double ratio = linearProgram.constraintsB[i] / linearProgram.constraintsCoefficients[i][pivotColumn];
+                    if (ratio < minRatio)
+                    {
+                        minRatio = ratio;
+                        pivotRow = i;
+                    }
+                }
+            }
+            return pivotRow;
+        }
+
+        private void Pivot(int pivotRow, int pivotColumn)
+        {
+            basisVariables[pivotColumn] = pivotRow+1;            
+
+            // Пересчет коэффициентов целевой функции
+            double pivotValue = linearProgram.constraintsCoefficients[pivotRow][pivotColumn];
+            // Для каждого элемента базисной строки
+            for (int i = 0; i < linearProgram.constraintsCoefficients[pivotRow].Count; i++)
+            {
+                // Делим элемент на ведущий элемент
+                linearProgram.constraintsCoefficients[pivotRow][i] /= pivotValue;                
+            }
+            linearProgram.constraintsB[pivotColumn] /= pivotValue;
+            double pivotColumnElement;
+            // Для каждой строки, кроме базисной
+            for (int i = 0; i < linearProgram.constraintsCoefficients.Count; i++)
+            {
+                if (i != pivotRow)
+                {
+                    pivotColumnElement = linearProgram.constraintsCoefficients[i][pivotColumn];
+                    for (int j = 0; j < linearProgram.constraintsCoefficients[i].Count; j++)
+                    {
+                        linearProgram.constraintsCoefficients[i][j] -= linearProgram.constraintsCoefficients[pivotRow][j] * pivotColumnElement;
+                    }
+                    linearProgram.constraintsB[i] -= linearProgram.constraintsB[pivotColumn];
+                }
+            }
+            pivotColumnElement = linearProgram.objectiveFunctionCoefficients[pivotColumn];
+            for (int i = 0;i < linearProgram.objectiveFunctionCoefficients.Count;i++)
+            {
+                linearProgram.objectiveFunctionCoefficients[i] -= linearProgram.constraintsCoefficients[pivotRow][i] * pivotColumnElement;                                
+            }
+        }
+
+        private void GetSolution()
+        {
+            // Получение оптимального решения
         }
         public bool IsCanonical(LinearProgram linearProgram)
         {            
@@ -47,17 +156,16 @@ namespace SimplexSolverProject.SimplexSolver
                 }
                 constraintsContainsSingle.Add(singleCoefficent);
                 if (singleCoefficent)                
-                    basisVariables.Add(i+1, 1);               
+                    basisVariables.Add(i+1);               
             }
             return linearProgram.constraintsCoefficients.Count == constraintsContainsSingle.Count(item => item == true);
         }
-
         public void WriteSimplexTableToFile(string fileName)
         {
-            int columnCount = linearProgram.constraintsCoefficients.Max(list=>list.Count);
+            int columnCount = linearProgram.constraintsCoefficients.Max(list => list.Count);
             int rowCount = basisVariables.Count;
             try
-            {                
+            {
                 using (StreamWriter writer = new StreamWriter(fileName))
                 {
                     StringBuilder header = new StringBuilder("       |");
@@ -73,7 +181,7 @@ namespace SimplexSolverProject.SimplexSolver
                     StringBuilder row;
                     int basisVariableIndex = 0;
 
-                    foreach (int basisVariableKey in basisVariables.Keys)
+                    foreach (int basisVariableKey in basisVariables)
                     {
                         row = new StringBuilder();
                         row.AppendFormat("x{0}     | ", basisVariableKey);
@@ -83,7 +191,7 @@ namespace SimplexSolverProject.SimplexSolver
                             row.AppendFormat("{0, 7}| ", linearProgram.constraintsCoefficients[basisVariableIndex][j]);
                         }
                         row.AppendFormat("{0, 7}| ", linearProgram.constraintsB[basisVariableIndex]);
-                        
+
                         writer.WriteLine(row);
                         basisVariableIndex++;
                     }
@@ -96,12 +204,12 @@ namespace SimplexSolverProject.SimplexSolver
                     row.Append("      0|");
                     writer.WriteLine(row);
                 }
+                tableFiles.Add(fileName);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Ошибка при записи в файл: " + ex.Message);
             }
         }
-
     }
 }

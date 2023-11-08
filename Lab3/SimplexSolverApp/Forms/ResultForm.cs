@@ -37,6 +37,8 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             DisplayStandardForm();
             tableLinksPanel = CreateTableLinkPanel();
             DisplayCanonicalForm();
+            simplexAlgoritmh.Solve();
+            GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
 
             int width = standartPanelWidth + canonicalPanelWidht + 120;
             int height = standartPanelHeight + canonicalPanelHeight + 50;
@@ -158,8 +160,9 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             canonicalPanelWidht = canonicalPanel.Width;
             canonicalPanelHeight = canonicalPanel.Height;
 
-            GenerateAndSaveSimplexTable(currentIteration, fileName);
+            simplexAlgoritmh.WriteSimplexTableToFile(fileName + "0");
         }
+        
         public FlowLayoutPanel CreateTableLinkPanel()
         {
             tableLinksPanel = new FlowLayoutPanel();
@@ -169,22 +172,24 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             this.Controls.Add(tableLinksPanel);
             return tableLinksPanel;
         }
-        public void GenerateAndSaveSimplexTable(int currentIteration, string fileName)
+        public void GenerateSimplexTablesLinks(List<string> tableFiles)
         {
-            fileName = fileName + currentIteration + ".txt";
-            simplexAlgoritmh.WriteSimplexTableToFile(fileName);
-
-            LinkLabel linkLabel = new LinkLabel();
-            linkLabel.Text = "Открыть симплекс-таблицу для итерации " + currentIteration;
-            linkLabel.Location = new Point(10, 100 + currentIteration * 20);
-            linkLabel.AutoSize = true;
-            linkLabel.LinkClicked += (sender, e) =>
+            for (int i = 0; i < tableFiles.Count; i++)
             {
-                System.Diagnostics.Process.Start("notepad.exe", fileName);
-            };
-            tableLinksPanel.Controls.Add(linkLabel);
-            tableLinksPanel.PerformLayout();
+                int currentIndex = i; // Создаем копию i
+                LinkLabel linkLabel = new LinkLabel();
+                linkLabel.Text = "Открыть симплекс-таблицу для итерации " + i;
+                linkLabel.Location = new Point(10, 100 + i * 20);
+                linkLabel.AutoSize = true;
+                linkLabel.LinkClicked += (sender, e) =>
+                {
+                    System.Diagnostics.Process.Start("notepad.exe", tableFiles[currentIndex]);
+                };
+                tableLinksPanel.Controls.Add(linkLabel);
+                tableLinksPanel.PerformLayout();
+            }
         }
+
 
         private void ResultForm_FormClosing(object sender, FormClosingEventArgs e)
         {
