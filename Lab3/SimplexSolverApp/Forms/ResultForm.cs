@@ -29,6 +29,8 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         {
             InitializeComponent();
             this.linearProgram = linearProgram;
+            this.AutoSize = true;
+            this.Name = "Форма результатов";
             linearProgram.ToStandardForm();
             simplexAlgoritmh = new SimplexAlgoritmh(linearProgram);
             isCanonical = simplexAlgoritmh.IsCanonical(linearProgram);
@@ -39,15 +41,18 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
 
             DisplayStandardForm();
             tableLinksPanel = CreateTableLinkPanel();
-            DisplayCanonicalForm();
+            simplexAlgoritmh.CheckObjectiveFunction();
+            DisplayCanonicalForm();            
             simplexAlgoritmh.Solve();
             GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
             simplexAlgoritmh.GetSolution(out solution, out result);
             DisplayResults(solution, result);
 
             int width = standartPanelWidth + Math.Max(canonicalPanelWidht,resultsPanelWidht) + 120;
-            int height = standartPanelHeight + Math.Max(tableLinksPanelHeight,resultpanelHeight) +  + 50;
+            int height = standartPanelHeight + Math.Max(tableLinksPanelHeight,resultpanelHeight) + 80;
             this.Size = new Size(width, height);
+            this.PerformLayout();
+            this.Height += 100;
         }
 
         private void DisplayStandardForm()
@@ -172,7 +177,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         {
             tableLinksPanel = new FlowLayoutPanel();
             tableLinksPanel.FlowDirection = FlowDirection.TopDown;
-            tableLinksPanel.Location = new Point(30, standartPanelHeight + 20);
+            tableLinksPanel.Location = new Point(30, standartPanelHeight + 40);
             tableLinksPanel.AutoSize = true;
             this.Controls.Add(tableLinksPanel);
             return tableLinksPanel;
@@ -184,7 +189,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 int currentIndex = i; // Создаем копию i
                 LinkLabel linkLabel = new LinkLabel();
                 linkLabel.Text = "Открыть симплекс-таблицу для итерации " + i;
-                linkLabel.Location = new Point(10, 100 + i * 20);
+                linkLabel.Location = new Point(10, 100 + i * 40);
                 linkLabel.AutoSize = true;
                 linkLabel.LinkClicked += (sender, e) =>
                 {

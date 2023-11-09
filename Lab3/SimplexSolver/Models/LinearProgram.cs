@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
@@ -16,6 +17,7 @@ namespace SimplexSolverProject.SimplexSolver.Models
         public List<List<double>> constraintsCoefficients = new List<List<double>>();
         public List<string> constraintsSigns = new List<string>();
         public List<double> constraintsB = new List<double>();
+        public double objectiveFunctionB;
         public void SetObjective(string objective)
         {
             Objective = objective;
@@ -84,6 +86,17 @@ namespace SimplexSolverProject.SimplexSolver.Models
                     {
                         constraintsCoefficients[i].Add(0); // Дополнительные переменные с коэффициентами 0                        
                     }
+                }
+            }
+            for (int i = 0; i < constraintsCoefficients.Count; i++)
+            {
+                if (constraintsB[i] < 0)
+                {
+                    for(int j = 0; j < constraintsCoefficients[i].Count; j++)
+                    {
+                        constraintsCoefficients[i][j] *= -1;                        
+                    }
+                    constraintsB[i] *= -1;
                 }
             }
         }

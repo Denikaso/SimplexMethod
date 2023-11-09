@@ -88,7 +88,7 @@ namespace SimplexSolverProject.SimplexSolver
 
         private void Pivot(int pivotRow, int pivotColumn)
         {
-            basisVariables[pivotColumn] = pivotRow+1;            
+            basisVariables[pivotRow] = pivotColumn+1;            
 
             // Пересчет коэффициентов целевой функции
             double pivotValue = linearProgram.constraintsCoefficients[pivotRow][pivotColumn];
@@ -98,7 +98,7 @@ namespace SimplexSolverProject.SimplexSolver
                 // Делим элемент на ведущий элемент
                 linearProgram.constraintsCoefficients[pivotRow][i] /= pivotValue;                
             }
-            linearProgram.constraintsB[pivotColumn] /= pivotValue;
+            linearProgram.constraintsB[pivotRow] /= pivotValue;
             double pivotColumnElement;
             // Для каждой строки, кроме базисной
             for (int i = 0; i < linearProgram.constraintsCoefficients.Count; i++)
@@ -110,7 +110,7 @@ namespace SimplexSolverProject.SimplexSolver
                     {
                         linearProgram.constraintsCoefficients[i][j] -= linearProgram.constraintsCoefficients[pivotRow][j] * pivotColumnElement;
                     }
-                    linearProgram.constraintsB[i] -= linearProgram.constraintsB[pivotColumn] * pivotColumnElement;
+                    linearProgram.constraintsB[i] -= linearProgram.constraintsB[pivotRow] * pivotColumnElement;
                 }
             }
             pivotColumnElement = linearProgram.objectiveFunctionCoefficients[pivotColumn];
@@ -118,6 +118,7 @@ namespace SimplexSolverProject.SimplexSolver
             {
                 linearProgram.objectiveFunctionCoefficients[i] -= linearProgram.constraintsCoefficients[pivotRow][i] * pivotColumnElement;                                
             }
+            linearProgram.objectiveFunctionB -= linearProgram.constraintsB[pivotRow] * pivotColumnElement;
         }
 
         public void GetSolution(out List<double> solution, out double result)
@@ -154,35 +155,59 @@ namespace SimplexSolverProject.SimplexSolver
         {            
             int maxLenght = linearProgram.constraintsCoefficients.Max(list => list.Count);            
             List<bool> constraintsContainsSingle = new List<bool>(linearProgram.constraintsSigns.Count);
-            for (int i = 0; i < maxLenght; i++)
+            for (int i = 0; i < linearProgram.constraintsCoefficients.Count;i++)
             {
                 bool singleCoefficent = false;
-                for (int j = 0; j < linearProgram.constraintsCoefficients.Count; j++) 
+                for (int j = 0;j < linearProgram.constraintsCoefficients[i].Count; j++)
                 {
-                    if (linearProgram.constraintsCoefficients[j][i] != 0)
+                    if (linearProgram.constraintsCoefficients[i][j] == 1)
                     {
-                        if (!singleCoefficent)
+                        singleCoefficent = true;
+                        for (int k = 0; k < linearProgram.constraintsCoefficients.Count; k++)
                         {
-                            if(linearProgram.constraintsCoefficients[j][i] == 1)
+                            if (k != i)
                             {
-                                singleCoefficent = true;                                
-                            }                                
-                        }                            
-                        else
+                                if (linearProgram.constraintsCoefficients[k][j] != 0)
+                                    singleCoefficent = false;
+                            }                            
+                        }
+                        if (singleCoefficent)
                         {
-                            if (linearProgram.constraintsCoefficients[j][i] != 0)
-                            {
-                                singleCoefficent = false;
-                                break;
-                            }
+                            basisVariables.Add(j + 1);
+                            break;
                         }                            
                     }                    
-                }
+                }                
                 constraintsContainsSingle.Add(singleCoefficent);
-                if (singleCoefficent)                
-                    basisVariables.Add(i+1);               
             }
             return linearProgram.constraintsCoefficients.Count == constraintsContainsSingle.Count(item => item == true);
+        }
+        public void CheckObjectiveFunction()
+        {
+            int basisVAriable;
+            for(int i = 0; i < basisVariables.Count; i++)
+            {
+                basisVAriable = basisVariables[i] - 1;
+                if (linearProgram.objectiveFunctionCoefficients[basisVAriable] != 0)
+                {
+                    for (int j = 0; j < linearProgram.constraintsCoefficients.Count; j++)
+                    {
+                        if (linearProgram.constraintsCoefficients[j][basisVAriable] == 1)
+                        {
+                            for (int k = 0; k < linearProgram.constraintsCoefficients[j].Count;k++)
+                            {
+                                if (linearProgram.constraintsCoefficients[j][k] != 0 && k != basisVAriable)
+                                {
+                                    linearProgram.objectiveFunctionCoefficients[k] += linearProgram.objectiveFunctionCoefficients[basisVAriable] * (-1 * linearProgram.constraintsCoefficients[j][k]);
+                                }                                
+                            }
+                            linearProgram.objectiveFunctionB += linearProgram.constraintsB[j] * linearProgram.objectiveFunctionCoefficients[basisVAriable];
+                            linearProgram.objectiveFunctionCoefficients[basisVAriable] = 0;
+                        }
+                    }
+                }
+            }
+            linearProgram.objectiveFunctionB *= -1;
         }
         public void WriteSimplexTableToFile(string fileName)
         {
@@ -225,7 +250,7 @@ namespace SimplexSolverProject.SimplexSolver
                     {
                         row.AppendFormat("{0, 7}| ", objectiveFunctionCoefficient);
                     }
-                    row.Append("      0|");
+                    row.AppendFormat("{0, 7}|", linearProgram.objectiveFunctionB);
                     writer.WriteLine(row);
                 }
                 tableFiles.Add(fileName);
