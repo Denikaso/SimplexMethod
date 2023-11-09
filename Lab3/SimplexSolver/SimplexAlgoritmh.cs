@@ -1,7 +1,9 @@
 ﻿using SimplexSolverProject.SimplexSolver.Models;
 using SimplexSolverProject.SimplexSolverApp.Forms;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,15 +41,11 @@ namespace SimplexSolverProject.SimplexSolver
                 Pivot(pivotRow, pivotColumn);
                 WriteSimplexTableToFile(fileName + iterationIndex);                
             }
-
-            // Получение оптимального решения
-            GetSolution();
         }
 
         private bool IsOptimal()
         {
             return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
-
         }
 
         private int SelectPivotColumn()
@@ -112,7 +110,7 @@ namespace SimplexSolverProject.SimplexSolver
                     {
                         linearProgram.constraintsCoefficients[i][j] -= linearProgram.constraintsCoefficients[pivotRow][j] * pivotColumnElement;
                     }
-                    linearProgram.constraintsB[i] -= linearProgram.constraintsB[pivotColumn];
+                    linearProgram.constraintsB[i] -= linearProgram.constraintsB[pivotColumn] * pivotColumnElement;
                 }
             }
             pivotColumnElement = linearProgram.objectiveFunctionCoefficients[pivotColumn];
@@ -122,9 +120,35 @@ namespace SimplexSolverProject.SimplexSolver
             }
         }
 
-        private void GetSolution()
+        public void GetSolution(out List<double> solution, out double result)
         {
-            // Получение оптимального решения
+            solution = new List<double>(linearProgram.objectiveFunctionCoefficients.Count);
+            result = 0;
+            for (int i = 0; i < linearProgram.objectiveFunctionCoefficients.Count; i++)
+            {
+                solution.Add(double.MinValue); 
+            }
+            for (int i = 0; i < linearProgram.constraintsCoefficients.Count; i++)
+            {
+                for (int j = 0; j < linearProgram.constraintsCoefficients[i].Count; j++)
+                {
+                    if(basisVariables.Contains(j+1) && linearProgram.constraintsCoefficients[i][j] == 1)
+                    {
+                        solution[j] = linearProgram.constraintsB[i];
+                    }
+                }
+            }
+            for (int i = 0; i < linearProgram.objectiveFunctionCoefficients.Count; i++)
+            {
+                if (solution[i] == double.MinValue)
+                {
+                    solution[i] = 0;
+                }
+            }
+            for(int i = 0;i < linearProgram.initialObjectiveFunctionCoefficients.Count; i++)
+            {
+                result += linearProgram.initialObjectiveFunctionCoefficients[i] * solution[i];
+            }
         }
         public bool IsCanonical(LinearProgram linearProgram)
         {            
@@ -173,7 +197,7 @@ namespace SimplexSolverProject.SimplexSolver
                     {
                         header.AppendFormat("   x{0}   |", j + 1);
                     }
-                    header.AppendFormat("   RHS  |   Ratio   |");
+                    header.AppendFormat("   RHS  |");
 
                     writer.WriteLine(header);
 

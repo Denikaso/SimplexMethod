@@ -10,6 +10,7 @@ namespace SimplexSolverProject.SimplexSolver.Models
     internal class LinearProgram
     {
         public List<double> objectiveFunctionCoefficients = new List<double>();
+        public List<double> initialObjectiveFunctionCoefficients = new List<double>();
         public string Objective { get; private set; }
 
         public List<List<double>> constraintsCoefficients = new List<List<double>>();
@@ -23,6 +24,7 @@ namespace SimplexSolverProject.SimplexSolver.Models
         public void SetObjectiveFunctionCoefficients(List<double> coefficients)
         {
             objectiveFunctionCoefficients = coefficients;
+            initialObjectiveFunctionCoefficients.AddRange(coefficients);
         }
 
         public void AddConstraint(List<double> coefficients, string sign, double b)

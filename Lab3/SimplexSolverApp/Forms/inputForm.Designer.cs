@@ -1,6 +1,6 @@
 ﻿namespace SimplexSolverProject.SimplexSolverApp.Forms
 {
-    partial class inputForm
+    partial class InputForm
     {
         /// <summary>
         /// Required designer variable.
@@ -30,13 +30,13 @@
         {
             SuspendLayout();
             // 
-            // inputForm
+            // InputForm
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Name = "inputForm";
-            Text = "inputForm";
+            Name = "InputForm";
+            Text = "InputForm";
             FormClosing += inputForm_FormClosing;
             ResumeLayout(false);
         }

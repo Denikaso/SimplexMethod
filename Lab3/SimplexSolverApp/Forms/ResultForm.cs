@@ -20,8 +20,11 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         private SimplexAlgoritmh simplexAlgoritmh;
         public bool isCanonical;
         private int standartPanelWidth, standartPanelHeight, canonicalPanelWidht, canonicalPanelHeight;
+        private int tableLinksPanelWidht, tableLinksPanelHeight, resultsPanelWidht, resultpanelHeight;
         public int currentIteration;
         FlowLayoutPanel tableLinksPanel;
+        List<double> solution;        
+        double result;
         internal ResultForm(LinearProgram linearProgram)
         {
             InitializeComponent();
@@ -39,9 +42,11 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             DisplayCanonicalForm();
             simplexAlgoritmh.Solve();
             GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
+            simplexAlgoritmh.GetSolution(out solution, out result);
+            DisplayResults(solution, result);
 
-            int width = standartPanelWidth + canonicalPanelWidht + 120;
-            int height = standartPanelHeight + canonicalPanelHeight + 50;
+            int width = standartPanelWidth + Math.Max(canonicalPanelWidht,resultsPanelWidht) + 120;
+            int height = standartPanelHeight + Math.Max(tableLinksPanelHeight,resultpanelHeight) +  + 50;
             this.Size = new Size(width, height);
         }
 
@@ -188,12 +193,48 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 tableLinksPanel.Controls.Add(linkLabel);
                 tableLinksPanel.PerformLayout();
             }
+            tableLinksPanelWidht = tableLinksPanel.Width;
+            tableLinksPanelHeight = tableLinksPanel.Height;
+        }
+        private void DisplayResults(List<double> solution, double result)
+        {
+            // Создайте FlowLayoutPanel для результатов
+            FlowLayoutPanel resultsPanel = new FlowLayoutPanel();
+            resultsPanel.FlowDirection = FlowDirection.TopDown; 
+            resultsPanel.Location = new Point(standartPanelWidth + 80, canonicalPanelHeight + 10);
+            resultsPanel.AutoSize = true;
+            this.Controls.Add(resultsPanel);
+
+            // Создайте заголовок для области результатов
+            Label resultsHeader = new Label();
+            resultsHeader.Text = "Результаты решения задачи:";
+            resultsHeader.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);
+            resultsHeader.AutoSize = true;
+            resultsPanel.Controls.Add(resultsHeader);
+
+            // Создайте элемент для отображения координат
+            Label solutionLabel = new Label();
+            solutionLabel.Text = "Координаты точки: [" + string.Join("; ", solution) + "]";
+            solutionLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+            solutionLabel.AutoSize = true;
+            resultsPanel.Controls.Add(solutionLabel);
+
+            // Создайте элемент для отображения результата (предположим, result - ваше число)
+            Label resultLabel = new Label();
+            resultLabel.Text = "F = " + result;
+            resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+            resultLabel.AutoSize = true;
+            resultsPanel.Controls.Add(resultLabel);
+
+            resultsPanel.PerformLayout();
+            resultsPanelWidht = resultsPanel.Width;
+            resultpanelHeight = resultsPanel.Height;
         }
 
 
         private void ResultForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            
+
         }
     }
 }

@@ -33,7 +33,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 int numberOfConstraints = int.Parse(selectConstraintsСomboBox.SelectedItem.ToString());
 
                 // Создаем новую форму для ввода коэффициентов
-                inputForm inputForm = new inputForm(numberOfVariables, numberOfConstraints);
+                InputForm inputForm = new InputForm(numberOfVariables, numberOfConstraints);
 
                 // Открываем новую формуму 
                 inputForm.Show();

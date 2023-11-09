@@ -11,13 +11,13 @@ using System.Windows.Forms;
 
 namespace SimplexSolverProject.SimplexSolverApp.Forms
 {
-    public partial class inputForm : Form
+    public partial class InputForm : Form
     {
         int _numberOfVariables;
         int _numberOfConstraints;
         private string selectedObjective;
         Panel panel;
-        public inputForm(int numberOfVariables, int numberOfConstraints)
+        public InputForm(int numberOfVariables, int numberOfConstraints)
         {
             InitializeComponent();
 
