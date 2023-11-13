@@ -36,6 +36,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
             Name = "InputForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "InputForm";
             FormClosing += inputForm_FormClosing;
             ResumeLayout(false);

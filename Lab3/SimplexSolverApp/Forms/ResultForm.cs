@@ -23,7 +23,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         private int tableLinksPanelWidht, tableLinksPanelHeight, resultsPanelWidht, resultpanelHeight;
         public int currentIteration;
         FlowLayoutPanel tableLinksPanel;
-        List<double> solution;        
+        List<double> solution;
         double result;
         internal ResultForm(LinearProgram linearProgram)
         {
@@ -31,46 +31,46 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             this.linearProgram = linearProgram;
             this.AutoSize = true;
             this.Name = "Форма результатов";
+            this.MaximizeBox = false;            
             linearProgram.ToStandardForm();
             simplexAlgoritmh = new SimplexAlgoritmh(linearProgram);
             isCanonical = simplexAlgoritmh.IsCanonical(linearProgram);
             currentIteration = 0;
-            
+
             this.FormBorderStyle = FormBorderStyle.Fixed3D;
             this.Icon = Properties.Resources.SolutionIcon;
 
             DisplayStandardForm();
             tableLinksPanel = CreateTableLinkPanel();
             simplexAlgoritmh.CheckObjectiveFunction();
-            DisplayCanonicalForm();            
+            DisplayCanonicalForm();
             simplexAlgoritmh.Solve();
             GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
             simplexAlgoritmh.GetSolution(out solution, out result);
             DisplayResults(solution, result);
 
-            int width = standartPanelWidth + Math.Max(canonicalPanelWidht,resultsPanelWidht) + 120;
-            int height = standartPanelHeight + Math.Max(tableLinksPanelHeight,resultpanelHeight) + 80;
+            int width = standartPanelWidth + Math.Max(canonicalPanelWidht, resultsPanelWidht) + 120;
+            int height = standartPanelHeight + Math.Max(tableLinksPanelHeight, resultpanelHeight) + 100;
             this.Size = new Size(width, height);
-            this.PerformLayout();
-            this.Height += 100;
+            this.PerformLayout();            
         }
 
         private void DisplayStandardForm()
-        {            
+        {
             FlowLayoutPanel standardPanel = new FlowLayoutPanel();
-            standardPanel.FlowDirection = FlowDirection.TopDown; 
+            standardPanel.FlowDirection = FlowDirection.TopDown;
             standardPanel.Location = new Point(30, 10);
-            standardPanel.AutoSize = true; 
+            standardPanel.AutoSize = true;
             this.Controls.Add(standardPanel);
 
             Font font = new Font(FontFamily.GenericSansSerif, 11);
-            
+
             Label standardFormLabel = new Label();
             standardFormLabel.Text = "Стандартная форма:";
             standardFormLabel.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);
             standardFormLabel.AutoSize = true;
             standardPanel.Controls.Add(standardFormLabel);
-            
+
             Label objectiveHeaderLabel = new Label();
             objectiveHeaderLabel.Text = "Целевая функция:";
             objectiveHeaderLabel.Font = font;
@@ -153,7 +153,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             Label canonicalFormLabel = new Label();
             canonicalFormLabel.Text = "Каноническая форма:";
             canonicalFormLabel.Location = new Point(6, 10);
-            canonicalFormLabel.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);            
+            canonicalFormLabel.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);
             canonicalFormLabel.AutoSize = true;
             canonicalPanel.Controls.Add(canonicalFormLabel);
 
@@ -162,8 +162,8 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             Label canonicalInfoLabel = new Label();
             canonicalInfoLabel.Text = canonicalInfo;
             canonicalInfoLabel.Location = new Point(10, 40);
-            canonicalInfoLabel.Font = canonicalFont;            
-            canonicalInfoLabel.AutoSize = true;            
+            canonicalInfoLabel.Font = canonicalFont;
+            canonicalInfoLabel.AutoSize = true;
             canonicalPanel.Controls.Add(canonicalInfoLabel);
 
             canonicalPanel.PerformLayout();
@@ -172,7 +172,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
 
             simplexAlgoritmh.WriteSimplexTableToFile(fileName + "0");
         }
-        
+
         public FlowLayoutPanel CreateTableLinkPanel()
         {
             tableLinksPanel = new FlowLayoutPanel();
@@ -190,6 +190,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 LinkLabel linkLabel = new LinkLabel();
                 linkLabel.Text = "Открыть симплекс-таблицу для итерации " + i;
                 linkLabel.Location = new Point(10, 100 + i * 40);
+                linkLabel.Height = 60;
                 linkLabel.AutoSize = true;
                 linkLabel.LinkClicked += (sender, e) =>
                 {
@@ -203,14 +204,12 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         }
         private void DisplayResults(List<double> solution, double result)
         {
-            // Создайте FlowLayoutPanel для результатов
             FlowLayoutPanel resultsPanel = new FlowLayoutPanel();
-            resultsPanel.FlowDirection = FlowDirection.TopDown; 
+            resultsPanel.FlowDirection = FlowDirection.TopDown;
             resultsPanel.Location = new Point(standartPanelWidth + 80, canonicalPanelHeight + 10);
             resultsPanel.AutoSize = true;
             this.Controls.Add(resultsPanel);
 
-            // Создайте заголовок для области результатов
             Label resultsHeader = new Label();
             resultsHeader.Text = "Результаты решения задачи:";
             resultsHeader.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);

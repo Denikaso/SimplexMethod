@@ -14,10 +14,11 @@ namespace SimplexSolverProject.SimplexSolver
     internal class SimplexAlgoritmh
     {
         private const string fileName = "C:\\Уник\\Методы\\SimplexMethod\\results\\table";
+        private const int accuracy = 4;
         private LinearProgram linearProgram;
         private List<int> basisVariables;
         public List<string> tableFiles;
-        private int iterationIndex;
+        private int iterationIndex;        
         internal SimplexAlgoritmh(LinearProgram linearProgram)
         {
             this.linearProgram = linearProgram;
@@ -26,18 +27,14 @@ namespace SimplexSolverProject.SimplexSolver
             iterationIndex = 0;
         }
         public void Solve()
-        {
-            // Основной цикл симплекс-алгоритма
+        {            
             while (!IsOptimal())
             {
-                iterationIndex++;
-                // Выбор разрешающего столбца
+                iterationIndex++;                
                 int pivotColumn = SelectPivotColumn();
-
-                // Выбор разрешающей строки
+                
                 int pivotRow = SelectPivotRow(pivotColumn);
-
-                // Переход к новому базису
+                
                 Pivot(pivotRow, pivotColumn);
                 WriteSimplexTableToFile(fileName + iterationIndex);                
             }
@@ -50,8 +47,6 @@ namespace SimplexSolverProject.SimplexSolver
 
         private int SelectPivotColumn()
         {
-            // Выбор разрешающего столбца
-            // Обычно это столбец с наименьшим положительным значением в строке целевой функции
             int pivotColumn = 0;
             double minValue = double.MaxValue;
             for (int i = 0; i < linearProgram.objectiveFunctionCoefficients.Count; i++)
@@ -67,8 +62,6 @@ namespace SimplexSolverProject.SimplexSolver
 
         private int SelectPivotRow(int pivotColumn)
         {
-            // Выбор разрешающей строки
-            // Обычно это строка, в которой столбец с наименьшим положительным отношением к правой части
             int pivotRow = -1;
             double minRatio = double.MaxValue;
             for (int i = 0; i < linearProgram.constraintsB.Count; i++)
@@ -90,17 +83,15 @@ namespace SimplexSolverProject.SimplexSolver
         {
             basisVariables[pivotRow] = pivotColumn+1;            
 
-            // Пересчет коэффициентов целевой функции
             double pivotValue = linearProgram.constraintsCoefficients[pivotRow][pivotColumn];
-            // Для каждого элемента базисной строки
             for (int i = 0; i < linearProgram.constraintsCoefficients[pivotRow].Count; i++)
             {
-                // Делим элемент на ведущий элемент
-                linearProgram.constraintsCoefficients[pivotRow][i] /= pivotValue;                
+                linearProgram.constraintsCoefficients[pivotRow][i] /= pivotValue;
+                linearProgram.constraintsCoefficients[pivotRow][i] = Math.Round(linearProgram.constraintsCoefficients[pivotRow][i], accuracy);
             }
             linearProgram.constraintsB[pivotRow] /= pivotValue;
+            linearProgram.constraintsB[pivotRow] = Math.Round(linearProgram.constraintsB[pivotRow], accuracy);
             double pivotColumnElement;
-            // Для каждой строки, кроме базисной
             for (int i = 0; i < linearProgram.constraintsCoefficients.Count; i++)
             {
                 if (i != pivotRow)
@@ -109,16 +100,20 @@ namespace SimplexSolverProject.SimplexSolver
                     for (int j = 0; j < linearProgram.constraintsCoefficients[i].Count; j++)
                     {
                         linearProgram.constraintsCoefficients[i][j] -= linearProgram.constraintsCoefficients[pivotRow][j] * pivotColumnElement;
+                        linearProgram.constraintsCoefficients[i][j] = Math.Round(linearProgram.constraintsCoefficients[i][j], accuracy);
                     }
                     linearProgram.constraintsB[i] -= linearProgram.constraintsB[pivotRow] * pivotColumnElement;
+                    linearProgram.constraintsB[i] = Math.Round(linearProgram.constraintsB[i], accuracy);
                 }
             }
             pivotColumnElement = linearProgram.objectiveFunctionCoefficients[pivotColumn];
             for (int i = 0;i < linearProgram.objectiveFunctionCoefficients.Count;i++)
             {
-                linearProgram.objectiveFunctionCoefficients[i] -= linearProgram.constraintsCoefficients[pivotRow][i] * pivotColumnElement;                                
+                linearProgram.objectiveFunctionCoefficients[i] -= linearProgram.constraintsCoefficients[pivotRow][i] * pivotColumnElement;
+                linearProgram.objectiveFunctionCoefficients[i] = Math.Round(linearProgram.objectiveFunctionCoefficients[i], accuracy);
             }
             linearProgram.objectiveFunctionB -= linearProgram.constraintsB[pivotRow] * pivotColumnElement;
+            linearProgram.objectiveFunctionB = Math.Round(linearProgram.objectiveFunctionB, accuracy);
         }
 
         public void GetSolution(out List<double> solution, out double result)
@@ -150,6 +145,7 @@ namespace SimplexSolverProject.SimplexSolver
             {
                 result += linearProgram.initialObjectiveFunctionCoefficients[i] * solution[i];
             }
+            Math.Round(result, accuracy);
         }
         public bool IsCanonical(LinearProgram linearProgram)
         {            
@@ -199,9 +195,11 @@ namespace SimplexSolverProject.SimplexSolver
                                 if (linearProgram.constraintsCoefficients[j][k] != 0 && k != basisVAriable)
                                 {
                                     linearProgram.objectiveFunctionCoefficients[k] += linearProgram.objectiveFunctionCoefficients[basisVAriable] * (-1 * linearProgram.constraintsCoefficients[j][k]);
+                                    Math.Round(linearProgram.objectiveFunctionCoefficients[k], accuracy);
                                 }                                
                             }
                             linearProgram.objectiveFunctionB += linearProgram.constraintsB[j] * linearProgram.objectiveFunctionCoefficients[basisVAriable];
+                            Math.Round(linearProgram.objectiveFunctionB, accuracy);
                             linearProgram.objectiveFunctionCoefficients[basisVAriable] = 0;
                         }
                     }
@@ -220,9 +218,9 @@ namespace SimplexSolverProject.SimplexSolver
                     StringBuilder header = new StringBuilder("       |");
                     for (int j = 0; j < columnCount; j++)
                     {
-                        header.AppendFormat("   x{0}   |", j + 1);
+                        header.AppendFormat("    x{0}    |", j + 1);
                     }
-                    header.AppendFormat("   RHS  |");
+                    header.AppendFormat("   RHS    |");
 
                     writer.WriteLine(header);
 
@@ -237,9 +235,9 @@ namespace SimplexSolverProject.SimplexSolver
 
                         for (int j = 0; j < columnCount; j++)
                         {
-                            row.AppendFormat("{0, 7}| ", linearProgram.constraintsCoefficients[basisVariableIndex][j]);
+                            row.AppendFormat("{0, 9}| ", linearProgram.constraintsCoefficients[basisVariableIndex][j]);
                         }
-                        row.AppendFormat("{0, 7}| ", linearProgram.constraintsB[basisVariableIndex]);
+                        row.AppendFormat("{0, 9}| ", linearProgram.constraintsB[basisVariableIndex]);
 
                         writer.WriteLine(row);
                         basisVariableIndex++;
@@ -248,9 +246,9 @@ namespace SimplexSolverProject.SimplexSolver
                     row = new StringBuilder("F      | ");
                     foreach (double objectiveFunctionCoefficient in linearProgram.objectiveFunctionCoefficients)
                     {
-                        row.AppendFormat("{0, 7}| ", objectiveFunctionCoefficient);
+                        row.AppendFormat("{0, 9}| ", objectiveFunctionCoefficient);
                     }
-                    row.AppendFormat("{0, 7}|", linearProgram.objectiveFunctionB);
+                    row.AppendFormat("{0, 9}|", linearProgram.objectiveFunctionB);
                     writer.WriteLine(row);
                 }
                 tableFiles.Add(fileName);

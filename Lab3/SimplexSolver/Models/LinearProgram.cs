@@ -36,8 +36,7 @@ namespace SimplexSolverProject.SimplexSolver.Models
             constraintsB.Add(b);
         }
         public void ToStandardForm()
-        {
-            // 1. Если задача максимизируется, инвертируем коэффициенты целевой функции.
+        {            
             if (Objective == "max")
             {
                 for (int i = 0; i < objectiveFunctionCoefficients.Count; i++)
@@ -46,45 +45,40 @@ namespace SimplexSolverProject.SimplexSolver.Models
                 }
                 Objective = "min";
             }
-
-            // 2. Добавление дополнительных переменных для ограничений с >= и <=
-            int additionalVariableCount = 0; // Счетчик дополнительных переменных
+            
+            int additionalVariableCount = 0; 
             for (int i = 0; i < constraintsCoefficients.Count; i++)
             {                
                 if (constraintsSigns[i] == ">=")
-                {
-                    // Добавляем дополнительные переменные и пересчитываем коэффициенты
+                {                    
                     for (int j = 0; j < additionalVariableCount; j++)
                     {                                                     
-                            constraintsCoefficients[i].Add(0); // Дополнительные переменные с коэффициентами 0
+                            constraintsCoefficients[i].Add(0); 
                     }
-                    constraintsCoefficients[i].Add(-1); // Дополнительная переменная с коэффициентом -1
+                    constraintsCoefficients[i].Add(-1); 
                     objectiveFunctionCoefficients.Add(0);
                     additionalVariableCount++;
                 }
                 else if (constraintsSigns[i] == "<=")
-                {
-                    // Добавляем дополнительные переменные и пересчитываем коэффициенты
+                {                    
                     for (int j = 0; j < additionalVariableCount; j++)
                     {
-                        constraintsCoefficients[i].Add(0); // Дополнительные переменные с коэффициентами 0
+                        constraintsCoefficients[i].Add(0); 
                     }
-                    constraintsCoefficients[i].Add(1); // Дополнительная переменная с коэффициентом 1
+                    constraintsCoefficients[i].Add(1); 
                     objectiveFunctionCoefficients.Add(0);
                     additionalVariableCount++;
                 }
-            }
-            // Обработка ограничений со знаком "="
+            }            
             for (int i = 0; i < constraintsCoefficients.Count; i++)
             {
                 int maxLenght = constraintsCoefficients.Max(list => list.Count);
                 int variance = maxLenght - constraintsCoefficients[i].Count;
                 if (variance > 0)
-                {
-                    // Добавляем дополнительные переменные и пересчитываем коэффициенты
+                {                    
                     for (int j = 0; j < variance; j++)
                     {
-                        constraintsCoefficients[i].Add(0); // Дополнительные переменные с коэффициентами 0                        
+                        constraintsCoefficients[i].Add(0);                         
                     }
                 }
             }

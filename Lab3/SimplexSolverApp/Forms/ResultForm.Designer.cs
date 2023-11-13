@@ -36,6 +36,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
             Name = "ResultForm";
+            StartPosition = FormStartPosition.Manual;
             Text = "ResultForm";
             FormClosing += ResultForm_FormClosing;
             ResumeLayout(false);

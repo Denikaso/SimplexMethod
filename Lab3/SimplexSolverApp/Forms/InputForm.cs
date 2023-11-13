@@ -26,6 +26,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             this._numberOfConstraints = numberOfConstraints;
             this.Text = "Ввод данных";
             this.Icon = Properties.Resources.SolutionIcon;
+            this.MaximizeBox = false;
 
             int formWidth = 350 + (numberOfVariables * 95);
             int formHeight = 260 + (numberOfConstraints * 45);
@@ -60,6 +61,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 textBoxVariable.Name = "textBoxVariable" + i;
                 textBoxVariable.Size = new Size(100, 20);
                 textBoxVariable.Location = new Point(10 + i * 120, 80);
+                textBoxVariable.Text = "0";
                 panel.Controls.Add(textBoxVariable);
                 textBoxVariable.TabIndex = i + 1;
             }
@@ -81,6 +83,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                     textBoxConstraint.Name = "textBoxConstraint" + i + "Variable" + j;
                     textBoxConstraint.Size = new Size(100, 20);
                     textBoxConstraint.Location = new Point(10 + j * 120, 160 + i * 40);
+                    textBoxConstraint.Text = "0";
                     textBoxConstraint.Font = new Font(textBoxConstraint.Font.FontFamily, 11);
                     panel.Controls.Add(textBoxConstraint);
                     textBoxConstraint.TabIndex = tabIndex;
@@ -104,6 +107,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 textBoxB.Name = "textBoxB" + i;
                 textBoxB.Size = new Size(100, 20);
                 textBoxB.Location = new Point(10 + (numberOfVariables * 120) + 60, 160 + i * 40);
+                textBoxB.Text = "0";
                 textBoxB.Font = new Font(textBoxB.Font.FontFamily, 11);
                 panel.Controls.Add(textBoxB);
                 textBoxB.TabIndex = tabIndex;
