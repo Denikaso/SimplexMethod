@@ -17,8 +17,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
     {
         private const string fileName = "C:\\Уник\\Методы\\SimplexMethod\\results\\table";
         private LinearProgram linearProgram;
-        private SimplexAlgoritmh simplexAlgoritmh;
-        public bool isCanonical;
+        private SimplexAlgoritmh simplexAlgoritmh;        
         private int standartPanelWidth, standartPanelHeight, canonicalPanelWidht, canonicalPanelHeight;
         private int tableLinksPanelWidht, tableLinksPanelHeight, resultsPanelWidht, resultpanelHeight;
         public int currentIteration;
@@ -34,7 +33,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             this.MaximizeBox = false;            
             linearProgram.ToStandardForm();
             simplexAlgoritmh = new SimplexAlgoritmh(linearProgram);
-            isCanonical = simplexAlgoritmh.IsCanonical(linearProgram);
+            simplexAlgoritmh.isCanonical = simplexAlgoritmh.IsCanonical(linearProgram);
             currentIteration = 0;
 
             this.FormBorderStyle = FormBorderStyle.Fixed3D;
@@ -44,11 +43,23 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             tableLinksPanel = CreateTableLinkPanel();
             simplexAlgoritmh.CheckObjectiveFunction();
             DisplayCanonicalForm();
-            simplexAlgoritmh.Solve();
-            GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
-            simplexAlgoritmh.GetSolution(out solution, out result);
-            DisplayResults(solution, result);
-
+            if (!simplexAlgoritmh.isCanonical)
+            {
+                simplexAlgoritmh.GetAuxiliaryObjectiveFunction();
+                simplexAlgoritmh.WriteSimplexTableToFile(fileName + "0");
+                simplexAlgoritmh.Solve();
+                GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
+                simplexAlgoritmh.GetSolution(out solution, out result);
+                DisplayResults(solution, result);
+            }
+            else
+            {                
+                simplexAlgoritmh.WriteSimplexTableToFile(fileName + "0");
+                simplexAlgoritmh.Solve();
+                GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
+                simplexAlgoritmh.GetSolution(out solution, out result);
+                DisplayResults(solution, result);
+            }
             int width = standartPanelWidth + Math.Max(canonicalPanelWidht, resultsPanelWidht) + 120;
             int height = standartPanelHeight + Math.Max(tableLinksPanelHeight, resultpanelHeight) + 100;
             this.Size = new Size(width, height);
@@ -157,7 +168,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             canonicalFormLabel.AutoSize = true;
             canonicalPanel.Controls.Add(canonicalFormLabel);
 
-            string canonicalInfo = isCanonical ? "Задача в канонической форме" : "Задача НЕ в канонической форме";
+            string canonicalInfo = simplexAlgoritmh.isCanonical ? "Задача в канонической форме" : "Задача НЕ в канонической форме";
 
             Label canonicalInfoLabel = new Label();
             canonicalInfoLabel.Text = canonicalInfo;
@@ -168,9 +179,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
 
             canonicalPanel.PerformLayout();
             canonicalPanelWidht = canonicalPanel.Width;
-            canonicalPanelHeight = canonicalPanel.Height;
-
-            simplexAlgoritmh.WriteSimplexTableToFile(fileName + "0");
+            canonicalPanelHeight = canonicalPanel.Height;            
         }
 
         public FlowLayoutPanel CreateTableLinkPanel()
@@ -186,7 +195,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
         {
             for (int i = 0; i < tableFiles.Count; i++)
             {
-                int currentIndex = i; // Создаем копию i
+                int currentIndex = i; 
                 LinkLabel linkLabel = new LinkLabel();
                 linkLabel.Text = "Открыть симплекс-таблицу для итерации " + i;
                 linkLabel.Location = new Point(10, 100 + i * 40);
@@ -216,14 +225,12 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             resultsHeader.AutoSize = true;
             resultsPanel.Controls.Add(resultsHeader);
 
-            // Создайте элемент для отображения координат
             Label solutionLabel = new Label();
             solutionLabel.Text = "Координаты точки: [" + string.Join("; ", solution) + "]";
             solutionLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
             solutionLabel.AutoSize = true;
             resultsPanel.Controls.Add(solutionLabel);
 
-            // Создайте элемент для отображения результата (предположим, result - ваше число)
             Label resultLabel = new Label();
             resultLabel.Text = "F = " + result;
             resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);

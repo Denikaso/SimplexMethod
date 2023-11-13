@@ -17,8 +17,10 @@ namespace SimplexSolverProject.SimplexSolver
         private const int accuracy = 4;
         private LinearProgram linearProgram;
         private List<int> basisVariables;
+        private List<bool> contraintsWithBasisVariable;
         public List<string> tableFiles;
-        private int iterationIndex;        
+        private int iterationIndex;
+        public bool isCanonical;
         internal SimplexAlgoritmh(LinearProgram linearProgram)
         {
             this.linearProgram = linearProgram;
@@ -27,7 +29,7 @@ namespace SimplexSolverProject.SimplexSolver
             iterationIndex = 0;
         }
         public void Solve()
-        {            
+        {    
             while (!IsOptimal())
             {
                 iterationIndex++;                
@@ -42,21 +44,51 @@ namespace SimplexSolverProject.SimplexSolver
 
         private bool IsOptimal()
         {
-            return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
+            if(!isCanonical)
+            {
+                if(linearProgram.auxiliaryObjectiveFunctionCoefficents.All(coefficient => Math.Abs(coefficient) <= 1 * Math.Pow(10, -accuracy)))
+                {
+                    isCanonical = !isCanonical;
+                    return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
+            }            
         }
 
         private int SelectPivotColumn()
         {
             int pivotColumn = 0;
             double minValue = double.MaxValue;
-            for (int i = 0; i < linearProgram.objectiveFunctionCoefficients.Count; i++)
+            if(!isCanonical)
             {
-                if (linearProgram.objectiveFunctionCoefficients[i] < minValue)
+                for (int i = 0; i < linearProgram.auxiliaryObjectiveFunctionCoefficents.Count; i++)
                 {
-                    minValue = linearProgram.objectiveFunctionCoefficients[i];
-                    pivotColumn = i;
+                    if (linearProgram.auxiliaryObjectiveFunctionCoefficents[i] < minValue)
+                    {
+                        minValue = linearProgram.auxiliaryObjectiveFunctionCoefficents[i];
+                        pivotColumn = i;
+                    }
                 }
             }
+            else
+            {
+                for (int i = 0; i < linearProgram.objectiveFunctionCoefficients.Count; i++)
+                {
+                    if (linearProgram.objectiveFunctionCoefficients[i] < minValue)
+                    {
+                        minValue = linearProgram.objectiveFunctionCoefficients[i];
+                        pivotColumn = i;
+                    }
+                }
+            }
+
             return pivotColumn;            
         }
 
@@ -114,8 +146,41 @@ namespace SimplexSolverProject.SimplexSolver
             }
             linearProgram.objectiveFunctionB -= linearProgram.constraintsB[pivotRow] * pivotColumnElement;
             linearProgram.objectiveFunctionB = Math.Round(linearProgram.objectiveFunctionB, accuracy);
+            if(!isCanonical)
+            {
+                pivotColumnElement = linearProgram.auxiliaryObjectiveFunctionCoefficents[pivotColumn];
+                for (int i = 0; i < linearProgram.auxiliaryObjectiveFunctionCoefficents.Count; i++)
+                {
+                    linearProgram.auxiliaryObjectiveFunctionCoefficents[i] -= linearProgram.constraintsCoefficients[pivotRow][i] * pivotColumnElement;
+                    linearProgram.auxiliaryObjectiveFunctionCoefficents[i] = Math.Round(linearProgram.auxiliaryObjectiveFunctionCoefficents[i], accuracy);
+                }
+                linearProgram.auxiliaryFunctionB -= linearProgram.constraintsB[pivotRow] * pivotColumnElement;
+                linearProgram.auxiliaryFunctionB = Math.Round(linearProgram.auxiliaryFunctionB, accuracy);
+            }
         }
-
+        public void GetAuxiliaryObjectiveFunction()
+        {            
+            basisVariables.Clear();
+            for(int i = 0; i < linearProgram.constraintsCoefficients.Count; i++)
+            {
+                basisVariables.Add(linearProgram.constraintsCoefficients[i].Count + i + 1);
+            }
+            int variablesCount = linearProgram.constraintsCoefficients.Max(list => list.Count);
+            linearProgram.SetAuxiliaryFunctionCoefficients(variablesCount);
+            for (int i = 0; i < variablesCount; i++)
+            {
+                for(int j = 0;j < linearProgram.constraintsCoefficients.Count;j++)
+                {
+                    linearProgram.auxiliaryObjectiveFunctionCoefficents[i] += linearProgram.constraintsCoefficients[j][i];                    
+                }                
+                linearProgram.auxiliaryObjectiveFunctionCoefficents[i] *= -1;
+            }
+            for (int i = 0; i < linearProgram.constraintsCoefficients.Count;   i++)
+            {
+                linearProgram.auxiliaryFunctionB += linearProgram.constraintsB[i];
+            }
+            linearProgram.auxiliaryFunctionB *= -1;
+        }
         public void GetSolution(out List<double> solution, out double result)
         {
             solution = new List<double>(linearProgram.objectiveFunctionCoefficients.Count);
@@ -149,8 +214,8 @@ namespace SimplexSolverProject.SimplexSolver
         }
         public bool IsCanonical(LinearProgram linearProgram)
         {            
-            int maxLenght = linearProgram.constraintsCoefficients.Max(list => list.Count);            
-            List<bool> constraintsContainsSingle = new List<bool>(linearProgram.constraintsSigns.Count);
+            int maxLenght = linearProgram.constraintsCoefficients.Max(list => list.Count);
+            contraintsWithBasisVariable = new List<bool>(linearProgram.constraintsSigns.Count);
             for (int i = 0; i < linearProgram.constraintsCoefficients.Count;i++)
             {
                 bool singleCoefficent = false;
@@ -173,10 +238,10 @@ namespace SimplexSolverProject.SimplexSolver
                             break;
                         }                            
                     }                    
-                }                
-                constraintsContainsSingle.Add(singleCoefficent);
+                }
+                contraintsWithBasisVariable.Add(singleCoefficent);
             }
-            return linearProgram.constraintsCoefficients.Count == constraintsContainsSingle.Count(item => item == true);
+            return linearProgram.constraintsCoefficients.Count == contraintsWithBasisVariable.Count(item => item == true);
         }
         public void CheckObjectiveFunction()
         {
@@ -250,6 +315,16 @@ namespace SimplexSolverProject.SimplexSolver
                     }
                     row.AppendFormat("{0, 9}|", linearProgram.objectiveFunctionB);
                     writer.WriteLine(row);
+                    if(!isCanonical)
+                    {
+                        row = new StringBuilder("F1      | ");
+                        foreach (double objectiveFunctionCoefficient in linearProgram.objectiveFunctionCoefficients)
+                        {
+                            row.AppendFormat("{0, 9}| ", objectiveFunctionCoefficient);
+                        }
+                        row.AppendFormat("{0, 9}|", linearProgram.objectiveFunctionB);
+                        writer.WriteLine(row);
+                    }
                 }
                 tableFiles.Add(fileName);
             }

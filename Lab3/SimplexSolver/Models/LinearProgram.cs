@@ -12,17 +12,25 @@ namespace SimplexSolverProject.SimplexSolver.Models
     {
         public List<double> objectiveFunctionCoefficients = new List<double>();
         public List<double> initialObjectiveFunctionCoefficients = new List<double>();
+        public List<double> auxiliaryObjectiveFunctionCoefficents = new List<double>();
         public string Objective { get; private set; }
 
         public List<List<double>> constraintsCoefficients = new List<List<double>>();
         public List<string> constraintsSigns = new List<string>();
         public List<double> constraintsB = new List<double>();
+        public double auxiliaryFunctionB;
         public double objectiveFunctionB;
         public void SetObjective(string objective)
         {
             Objective = objective;
         }
-
+        public void SetAuxiliaryFunctionCoefficients(int variablesCount)
+        {            
+            for (int i = 0; i < variablesCount; i++)
+            {
+                auxiliaryObjectiveFunctionCoefficents.Add(0);
+            }
+        }
         public void SetObjectiveFunctionCoefficients(List<double> coefficients)
         {
             objectiveFunctionCoefficients = coefficients;
