@@ -21,27 +21,37 @@ namespace SimplexSolverProject.SimplexSolver
         public List<string> tableFiles;
         private int iterationIndex;
         public bool isCanonical;
+        public bool isInfinitySolution;
+        public int zeroingIteration;
         internal SimplexAlgoritmh(LinearProgram linearProgram)
         {
             this.linearProgram = linearProgram;
             basisVariables = new List<int>();
             tableFiles = new List<string>();
             iterationIndex = 0;
+            isInfinitySolution = false;
+            zeroingIteration = -1;
         }
         public void Solve()
         {    
             while (!IsOptimal())
             {
+                
                 iterationIndex++;                
                 int pivotColumn = SelectPivotColumn();
                 
                 int pivotRow = SelectPivotRow(pivotColumn);
-                
-                Pivot(pivotRow, pivotColumn);
-                WriteSimplexTableToFile(fileName + iterationIndex);                
+                if(!isInfinitySolution)
+                {
+                    Pivot(pivotRow, pivotColumn);
+                    WriteSimplexTableToFile(fileName + iterationIndex);
+                }
+                else
+                {
+                    break;
+                }           
             }
         }
-
         private bool IsOptimal()
         {
             if(!isCanonical)
@@ -49,6 +59,7 @@ namespace SimplexSolverProject.SimplexSolver
                 if(linearProgram.auxiliaryObjectiveFunctionCoefficents.All(coefficient => Math.Abs(coefficient) <= 1 * Math.Pow(10, -accuracy)))
                 {
                     isCanonical = !isCanonical;
+                    zeroingIteration = iterationIndex;
                     return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
                 }
                 else
@@ -107,6 +118,10 @@ namespace SimplexSolverProject.SimplexSolver
                         pivotRow = i;
                     }
                 }
+            }
+            if(pivotRow == -1)
+            {
+                isInfinitySolution = true;
             }
             return pivotRow;
         }
@@ -317,7 +332,7 @@ namespace SimplexSolverProject.SimplexSolver
                     writer.WriteLine(row);
                     if(!isCanonical)
                     {
-                        row = new StringBuilder("F1      | ");
+                        row = new StringBuilder("F1     | ");
                         foreach (double objectiveFunctionCoefficient in linearProgram.objectiveFunctionCoefficients)
                         {
                             row.AppendFormat("{0, 9}| ", objectiveFunctionCoefficient);

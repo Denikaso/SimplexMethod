@@ -49,8 +49,17 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 simplexAlgoritmh.WriteSimplexTableToFile(fileName + "0");
                 simplexAlgoritmh.Solve();
                 GenerateSimplexTablesLinks(simplexAlgoritmh.tableFiles);
-                simplexAlgoritmh.GetSolution(out solution, out result);
-                DisplayResults(solution, result);
+                if (simplexAlgoritmh.isInfinitySolution)
+                {
+                    solution = null;
+                    result = 0;
+                    DisplayResults(solution, result);
+                }
+                else
+                {
+                    simplexAlgoritmh.GetSolution(out solution, out result);
+                    DisplayResults(solution, result);
+                }
             }
             else
             {                
@@ -168,7 +177,15 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             canonicalFormLabel.AutoSize = true;
             canonicalPanel.Controls.Add(canonicalFormLabel);
 
-            string canonicalInfo = simplexAlgoritmh.isCanonical ? "Задача в канонической форме" : "Задача НЕ в канонической форме";
+            string canonicalInfo;
+            if (simplexAlgoritmh.isCanonical)
+            {
+                canonicalInfo = "Задача в канонической форме";
+            }
+            else
+            {
+                canonicalInfo = "Задача НЕ в канонической форме.\nПрименяется двухэтапный симплекс метод.";
+            }
 
             Label canonicalInfoLabel = new Label();
             canonicalInfoLabel.Text = canonicalInfo;
@@ -181,7 +198,6 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             canonicalPanelWidht = canonicalPanel.Width;
             canonicalPanelHeight = canonicalPanel.Height;            
         }
-
         public FlowLayoutPanel CreateTableLinkPanel()
         {
             tableLinksPanel = new FlowLayoutPanel();
@@ -224,19 +240,35 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             resultsHeader.Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold);
             resultsHeader.AutoSize = true;
             resultsPanel.Controls.Add(resultsHeader);
-
-            Label solutionLabel = new Label();
-            solutionLabel.Text = "Координаты точки: [" + string.Join("; ", solution) + "]";
-            solutionLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
-            solutionLabel.AutoSize = true;
-            resultsPanel.Controls.Add(solutionLabel);
-
+            if(simplexAlgoritmh.zeroingIteration != -1)
+            {
+                Label zeroingLabel = new Label();
+                zeroingLabel.Text = "Вспомогательная функция \nобнулилась после " + simplexAlgoritmh.zeroingIteration + " итерации";
+                zeroingLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+                zeroingLabel.AutoSize = true;
+                resultsPanel.Controls.Add(zeroingLabel);
+            }
             Label resultLabel = new Label();
-            resultLabel.Text = "F = " + result;
-            resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
-            resultLabel.AutoSize = true;
-            resultsPanel.Controls.Add(resultLabel);
+            if (solution == null)
+            {
+                resultLabel.Text = "\nF = -ꝏ";
+                resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+                resultLabel.AutoSize = true;
+                resultsPanel.Controls.Add(resultLabel);
+            }
+            else
+            {
+                Label solutionLabel = new Label();
+                solutionLabel.Text = "\nКоординаты точки: [" + string.Join("; ", solution) + "]";
+                solutionLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+                solutionLabel.AutoSize = true;
+                resultsPanel.Controls.Add(solutionLabel);
 
+                resultLabel.Text = "F = " + result;
+                resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+                resultLabel.AutoSize = true;
+                resultsPanel.Controls.Add(resultLabel);
+            }            
             resultsPanel.PerformLayout();
             resultsPanelWidht = resultsPanel.Width;
             resultpanelHeight = resultsPanel.Height;
