@@ -277,7 +277,22 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
 
         private void ResultForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            try
+            {                
+                string fullPath = fileName;
+                
+                string directoryPath = Path.GetDirectoryName(fullPath);                
+                
+                foreach (string filePath in Directory.GetFiles(directoryPath))
+                {
+                    File.Delete(filePath);
+                }   
+            }
+            catch (Exception ex)
+            {                
+                MessageBox.Show("Произошла ошибка при удалении файлов: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
     }
 }
