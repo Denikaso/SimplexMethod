@@ -249,7 +249,14 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
                 resultsPanel.Controls.Add(zeroingLabel);
             }
             Label resultLabel = new Label();
-            if (solution == null)
+            if(simplexAlgoritmh.isNotSolution)
+            {
+                resultLabel.Text = "\nНевозможно поулчить канонический вид.\nНет решения";
+                resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
+                resultLabel.AutoSize = true;
+                resultsPanel.Controls.Add(resultLabel);
+            }
+            else if (solution == null)
             {
                 resultLabel.Text = "\nF = -ꝏ";
                 resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);

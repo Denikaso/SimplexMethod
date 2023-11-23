@@ -22,6 +22,7 @@ namespace SimplexSolverProject.SimplexSolver
         private int iterationIndex;
         public bool isCanonical;
         public bool isInfinitySolution;
+        public bool isNotSolution;
         public int zeroingIteration;
         internal SimplexAlgoritmh(LinearProgram linearProgram)
         {
@@ -41,7 +42,7 @@ namespace SimplexSolverProject.SimplexSolver
                 int pivotColumn = SelectPivotColumn();
                 
                 int pivotRow = SelectPivotRow(pivotColumn);
-                if(!isInfinitySolution)
+                if(!isInfinitySolution || !isNotSolution)
                 {
                     Pivot(pivotRow, pivotColumn);
                     WriteSimplexTableToFile(fileName + iterationIndex);
@@ -62,7 +63,13 @@ namespace SimplexSolverProject.SimplexSolver
                     zeroingIteration = iterationIndex;
                     return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
                 }
-                else
+                else if(linearProgram.auxiliaryObjectiveFunctionCoefficents.All(coefficient => coefficient >= 0))
+                {
+                    isCanonical = !isCanonical;
+                    isNotSolution = true;
+                    return linearProgram.objectiveFunctionCoefficients.All(coefficient => coefficient >= 0);
+                }
+                else 
                 {
                     return false;
                 }
