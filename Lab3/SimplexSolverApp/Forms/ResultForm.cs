@@ -251,7 +251,7 @@ namespace SimplexSolverProject.SimplexSolverApp.Forms
             Label resultLabel = new Label();
             if(simplexAlgoritmh.isNotSolution)
             {
-                resultLabel.Text = "\nНевозможно поулчить канонический вид.\nНет решения";
+                resultLabel.Text = "\nНевозможно получить канонический вид.\nНет решения";
                 resultLabel.Font = new Font(FontFamily.GenericSansSerif, 11);
                 resultLabel.AutoSize = true;
                 resultsPanel.Controls.Add(resultLabel);
